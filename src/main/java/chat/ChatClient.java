@@ -33,7 +33,12 @@ public class ChatClient {
 
     @OnMessage
     public void onMessage(String message) {
-        chatGUI.appendMessage(message);
+        if (message.startsWith("USERLIST:")) {
+            String[] users = message.substring(9).split(",");
+            chatGUI.updateUserList(users);
+        } else {
+            chatGUI.appendMessage(message);
+        }
     }
 
     public void sendMessage(String message) {
