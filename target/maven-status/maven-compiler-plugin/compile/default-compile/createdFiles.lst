@@ -1,4 +1,4 @@
-chat\ChatGUI.class
-chat\ChatServer.class
-chat\ChatServer$1.class
-chat\ChatClient.class
+chat/ChatServer.class
+chat/ChatServer$1.class
+chat/ChatGUI.class
+chat/ChatClient.class

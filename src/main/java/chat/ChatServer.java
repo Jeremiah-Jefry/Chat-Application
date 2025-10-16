@@ -39,6 +39,7 @@ public class ChatServer {
         String message = "User '" + username + "' has joined the chat.";
         broadcast(message);
         System.out.println(message);
+        broadcastUserList();
     }
 
     @OnMessage
@@ -46,26 +47,36 @@ public class ChatServer {
         String username = sessionUsernameMap.get(session);
         System.out.println("Message from " + username + ": " + message);
 
-        if (message.startsWith("ALL:")) {
-            broadcast(username + ": " + message.substring(4));
-        } else {
-            String[] parts = message.split(":", 2);
-            if (parts.length == 2) {
-                String destUsername = parts[0];
-                String privateMessage = parts[1];
-                sendMessage(usernameSessionMap.get(destUsername), "From " + username + ": " + privateMessage);
-                sendMessage(session, "To " + destUsername + ": " + privateMessage);
+        if (message.startsWith("/msg ")) {
+            String[] parts = message.split(" ", 3);
+            if (parts.length == 3) {
+                String destUsername = parts[1];
+                String privateMessage = parts[2];
+                Session destSession = usernameSessionMap.get(destUsername);
+                if (destSession != null) {
+                    sendMessage(destSession, "[PM from " + username + "]: " + privateMessage);
+                    sendMessage(session, "[PM to " + destUsername + "]: " + privateMessage);
+                } else {
+                    sendMessage(session, "[System]: User '" + destUsername + "' not found.");
+                }
+            } else {
+                sendMessage(session, "[System]: Invalid private message format. Use /msg <user> <message>");
             }
+        } else {
+            broadcast(username + ": " + message);
         }
     }
 
     @OnClose
     public void onClose(Session session) {
         String username = sessionUsernameMap.remove(session);
-        usernameSessionMap.remove(username);
-        String message = "User '" + username + "' has left the chat.";
-        broadcast(message);
-        System.out.println(message);
+        if (username != null) {
+            usernameSessionMap.remove(username);
+            String message = "User '" + username + "' has left the chat.";
+            broadcast(message);
+            System.out.println(message);
+            broadcastUserList();
+        }
     }
 
     @OnError
@@ -87,6 +98,11 @@ public class ChatServer {
         for (Session session : sessionUsernameMap.keySet()) {
             sendMessage(session, message);
         }
+    }
+
+    private void broadcastUserList() {
+        String userListMessage = "USERLIST:" + String.join(",", usernameSessionMap.keySet());
+        broadcast(userListMessage);
     }
 
     public static void main(String[] args) {
