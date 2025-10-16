@@ -1,8 +1,7 @@
 package chat;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.URI;
+import javax.swing.JTextField;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
 import javax.websocket.OnMessage;
@@ -14,9 +13,11 @@ import javax.websocket.WebSocketContainer;
 public class ChatClient {
 
     private Session session;
+    private ChatGUI chatGUI;
 
     public ChatClient(String serverUri) {
         try {
+            this.chatGUI = new ChatGUI();
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, new URI(serverUri));
         } catch (Exception e) {
@@ -27,12 +28,12 @@ public class ChatClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        System.out.println("Connected to the chat server.");
+        chatGUI.appendMessage("Connected to the chat server.");
     }
 
     @OnMessage
     public void onMessage(String message) {
-        System.out.println(message);
+        chatGUI.appendMessage(message);
     }
 
     public void sendMessage(String message) {
@@ -41,6 +42,14 @@ public class ChatClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public JTextField getMessageField() {
+        return chatGUI.getMessageField();
+    }
+
+    public ChatGUI getChatGUI() {
+        return chatGUI;
     }
 
     public static void main(String[] args) {
@@ -52,19 +61,13 @@ public class ChatClient {
         String username = args[0];
         String serverUri = "ws://localhost:8080/websockets/chat/" + username;
 
-        try {
-            ChatClient client = new ChatClient(serverUri);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-            System.out.println("Enter messages to send (type 'quit' to exit):");
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if ("quit".equalsIgnoreCase(line)) {
-                    break;
-                }
-                client.sendMessage(line);
+        ChatClient client = new ChatClient(serverUri);
+        client.getChatGUI().addSendButtonListener(() -> {
+            String message = client.getMessageField().getText();
+            if (!message.isEmpty()) {
+                client.sendMessage(message);
+                client.getMessageField().setText("");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 }
