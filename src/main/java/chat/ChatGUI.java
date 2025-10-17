@@ -18,7 +18,7 @@ public class ChatGUI {
     private JButton sendButton;
 
     public ChatGUI() {
-        frame = new JFrame("Discord-like Chat");
+        frame = new JFrame("Chat Application");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
         frame.setLayout(new BorderLayout());
