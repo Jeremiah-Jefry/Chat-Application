@@ -1,70 +1,87 @@
 package chat;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 
 public class ChatGUI {
     private JFrame frame;
-    private JTextArea chatArea;
+    private JTextPane chatPane;
     private JTextField messageField;
     private JList<String> userList;
     private DefaultListModel<String> userListModel;
+    private JList<String> channelList;
+    private DefaultListModel<String> channelListModel;
+    private JButton sendButton;
 
     public ChatGUI() {
-        frame = new JFrame("Chat");
+        frame = new JFrame("Discord-like Chat");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
-        frame.setLayout(new GridBagLayout());
+        frame.setSize(800, 600);
+        frame.setLayout(new BorderLayout());
 
-        GridBagConstraints gbc = new GridBagConstraints();
+        // Channel List
+        channelListModel = new DefaultListModel<>();
+        channelList = new JList<>(channelListModel);
+        JScrollPane channelScrollPane = new JScrollPane(channelList);
+        channelScrollPane.setBorder(BorderFactory.createTitledBorder("Channels"));
 
-        // Chat Area
-        chatArea = new JTextArea();
-        chatArea.setEditable(false);
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        frame.add(new JScrollPane(chatArea), gbc);
+        // Chat Pane and Message Field
+        JPanel chatPanel = new JPanel(new BorderLayout());
+        chatPane = new JTextPane();
+        chatPane.setEditable(false);
+        chatPanel.add(new JScrollPane(chatPane), BorderLayout.CENTER);
+
+        JPanel messagePanel = new JPanel(new BorderLayout());
+        messageField = new JTextField();
+        this.sendButton = new JButton("Send");
+        messagePanel.add(messageField, BorderLayout.CENTER);
+        messagePanel.add(this.sendButton, BorderLayout.EAST);
+        chatPanel.add(messagePanel, BorderLayout.SOUTH);
 
         // User List
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.2;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH;
-        frame.add(new JScrollPane(userList), gbc);
+        JScrollPane userScrollPane = new JScrollPane(userList);
+        userScrollPane.setBorder(BorderFactory.createTitledBorder("Users"));
 
-        // Message Field
-        messageField = new JTextField();
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.weightx = 1.0;
-        gbc.weighty = 0.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        frame.add(messageField, gbc);
+        // Main Split Pane
+        JSplitPane rightSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, chatPanel, userScrollPane);
+        rightSplitPane.setResizeWeight(0.8);
 
-        // Send Button
-        JButton sendButton = new JButton("Send");
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        frame.add(sendButton, gbc);
+        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, channelScrollPane, rightSplitPane);
+        mainSplitPane.setResizeWeight(0.2);
 
+        frame.add(mainSplitPane, BorderLayout.CENTER);
         frame.setVisible(true);
     }
 
     public void appendMessage(String message) {
-        chatArea.append(message + "\n");
+        StyledDocument doc = chatPane.getStyledDocument();
+        Style userStyle = chatPane.addStyle("UserStyle", null);
+        StyleConstants.setForeground(userStyle, Color.ORANGE);
+
+        Style regularStyle = chatPane.addStyle("RegularStyle", null);
+        StyleConstants.setForeground(regularStyle, Color.WHITE);
+
+        try {
+            if (message.startsWith("[")) {
+                doc.insertString(doc.getLength(), message + "\n", regularStyle);
+            } else {
+                String[] parts = message.split(":", 2);
+                doc.insertString(doc.getLength(), parts[0] + ":", userStyle);
+                doc.insertString(doc.getLength(), parts[1] + "\n", regularStyle);
+            }
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clearChat() {
+        chatPane.setText("");
     }
 
     public JTextField getMessageField() {
@@ -73,6 +90,7 @@ public class ChatGUI {
 
     public void addSendButtonListener(Runnable listener) {
         messageField.addActionListener(e -> listener.run());
+        sendButton.addActionListener(e -> listener.run());
     }
 
     public void updateUserList(String[] users) {
@@ -80,5 +98,24 @@ public class ChatGUI {
         for (String user : users) {
             userListModel.addElement(user);
         }
+    }
+
+    public void updateChannelList(String[] channels) {
+        channelListModel.clear();
+        for (String channel : channels) {
+            channelListModel.addElement(channel);
+        }
+    }
+
+    public void addChannelSelectionListener(java.util.function.Consumer<String> listener) {
+        channelList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selectedChannel = channelList.getSelectedValue();
+                if (selectedChannel != null) {
+                    clearChat();
+                    listener.accept(selectedChannel);
+                }
+            }
+        });
     }
 }
