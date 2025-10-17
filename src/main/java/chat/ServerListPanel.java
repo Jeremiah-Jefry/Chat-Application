@@ -9,12 +9,12 @@ public class ServerListPanel extends JPanel {
 
     public ServerListPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(32, 34, 37));
+        setBackground(new Color(230, 230, 250)); // Lavender
 
         serverListModel = new DefaultListModel<>();
         serverList = new JList<>(serverListModel);
-        serverList.setBackground(new Color(32, 34, 37));
-        serverList.setForeground(Color.WHITE);
+        serverList.setBackground(new Color(230, 230, 250)); // Lavender
+        serverList.setForeground(Color.BLACK);
         serverList.setCellRenderer(new ServerListRenderer());
 
         // Add some dummy servers for now

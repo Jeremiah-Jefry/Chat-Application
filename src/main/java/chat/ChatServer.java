@@ -192,8 +192,8 @@ public class ChatServer {
 
         try {
             server.start();
-            System.out.println("Server started.");
-            Thread.currentThread().join();
+            System.out.println("Press any key to stop the server...");
+            new BufferedReader(new InputStreamReader(System.in)).readLine();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

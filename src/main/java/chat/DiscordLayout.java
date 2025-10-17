@@ -11,13 +11,14 @@ public class DiscordLayout {
     private JPanel userListPanel;
 
     public DiscordLayout() {
-        frame = new JFrame("Discord-like Chat");
+        frame = new JFrame("Chat Application");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 700);
         frame.setLayout(new BorderLayout());
 
         // Server List Panel
         serverListPanel = new ServerListPanel();
+        serverListPanel.setBackground(new Color(230, 230, 250)); // Lavender
         serverListPanel.setPreferredSize(new Dimension(70, 0));
         frame.add(serverListPanel, BorderLayout.WEST);
 
@@ -27,6 +28,7 @@ public class DiscordLayout {
 
         // Channel List Panel
         channelListPanel = new ChannelListPanel();
+        channelListPanel.setBackground(new Color(173, 216, 230)); // Baby Blue
         channelListPanel.setPreferredSize(new Dimension(200, 0));
         mainContentPanel.add(channelListPanel, BorderLayout.WEST);
 
@@ -36,12 +38,12 @@ public class DiscordLayout {
 
         // Chat Panel
         chatPanel = new JPanel();
-        chatPanel.setBackground(new Color(54, 57, 63));
+        chatPanel.setBackground(new Color(152, 251, 152)); // Mint Green
         chatAndUserPanel.add(chatPanel, BorderLayout.CENTER);
 
         // User List Panel
         userListPanel = new JPanel();
-        userListPanel.setBackground(new Color(47, 49, 54));
+        userListPanel.setBackground(new Color(173, 216, 230)); // Baby Blue
         userListPanel.setPreferredSize(new Dimension(200, 0));
         chatAndUserPanel.add(userListPanel, BorderLayout.EAST);
 

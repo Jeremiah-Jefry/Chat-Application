@@ -9,13 +9,13 @@ public class ChannelListPanel extends JPanel {
 
     public ChannelListPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(47, 49, 54));
+        setBackground(new Color(173, 216, 230)); // Baby Blue
         setBorder(BorderFactory.createTitledBorder("Channels"));
 
         channelListModel = new DefaultListModel<>();
         channelList = new JList<>(channelListModel);
-        channelList.setBackground(new Color(47, 49, 54));
-        channelList.setForeground(Color.WHITE);
+        channelList.setBackground(new Color(173, 216, 230)); // Baby Blue
+        channelList.setForeground(Color.BLACK);
         channelList.setCellRenderer(new ChannelListRenderer());
 
         add(new JScrollPane(channelList), BorderLayout.CENTER);

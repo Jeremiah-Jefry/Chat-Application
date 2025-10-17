@@ -25,14 +25,14 @@ public class ChatGUI {
         chatListModel = new DefaultListModel<>();
         chatPane = new JList<>(chatListModel);
         chatPane.setCellRenderer(new ChatMessageRenderer());
-        chatPane.setBackground(new Color(54, 57, 63));
+        chatPane.setBackground(new Color(152, 251, 152)); // Mint Green
         JScrollPane chatScrollPane = new JScrollPane(chatPane);
         chatScrollPane.setBorder(null);
 
         // Message Field and Send Button
         messageField = new JTextField();
-        messageField.setBackground(new Color(64, 68, 75));
-        messageField.setForeground(Color.WHITE);
+        messageField.setBackground(new Color(240, 248, 255)); // Alice Blue
+        messageField.setForeground(Color.BLACK);
         sendButton = new JButton("Send");
 
         JPanel messagePanel = new JPanel(new BorderLayout());
@@ -47,8 +47,8 @@ public class ChatGUI {
         // User List
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
-        userList.setBackground(new Color(47, 49, 54));
-        userList.setForeground(Color.WHITE);
+        userList.setBackground(new Color(173, 216, 230)); // Baby Blue
+        userList.setForeground(Color.BLACK);
         JScrollPane userScrollPane = new JScrollPane(userList);
         userScrollPane.setBorder(BorderFactory.createTitledBorder("Users"));
         discordLayout.getUserListPanel().setLayout(new BorderLayout());
