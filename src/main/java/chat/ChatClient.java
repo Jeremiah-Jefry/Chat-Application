@@ -1,5 +1,6 @@
 package chat;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import java.net.URI;
 import javax.swing.JTextField;
 import javax.websocket.ClientEndpoint;
@@ -36,7 +37,13 @@ public class ChatClient {
         if (message.startsWith("USERLIST:")) {
             String[] users = message.substring(9).split(",");
             chatGUI.updateUserList(users);
-        } else {
+        } else if (message.startsWith("CHANNELLIST:")) {
+            String[] channels = message.substring(12).split(",");
+            chatGUI.updateChannelList(channels);
+        } else if (message.startsWith("[System]: User '")) {
+            chatGUI.appendMessage(message);
+        }
+        else {
             chatGUI.appendMessage(message);
         }
     }
@@ -58,6 +65,8 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
+        FlatDarkLaf.setup();
+
         if (args.length != 1) {
             System.out.println("Usage: java chat.ChatClient <username>");
             return;
@@ -70,8 +79,18 @@ public class ChatClient {
         client.getChatGUI().addSendButtonListener(() -> {
             String message = client.getMessageField().getText();
             if (!message.isEmpty()) {
-                client.sendMessage(message);
+                if (message.startsWith("/msg")) {
+                    client.sendMessage(message);
+                } else {
+                    client.sendMessage(message);
+                }
                 client.getMessageField().setText("");
+            }
+        });
+
+        client.getChatGUI().addChannelSelectionListener(channel -> {
+            if (channel != null) {
+                client.sendMessage("/join " + channel);
             }
         });
     }

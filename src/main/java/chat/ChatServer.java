@@ -22,6 +22,12 @@ public class ChatServer {
 
     private static Map<Session, String> sessionUsernameMap = new ConcurrentHashMap<>();
     private static Map<String, Session> usernameSessionMap = new ConcurrentHashMap<>();
+    private static Map<String, Set<Session>> channelUsersMap = new ConcurrentHashMap<>();
+    private static Map<Session, String> userChannelMap = new ConcurrentHashMap<>();
+
+    static {
+        channelUsersMap.put("general", new HashSet<>());
+    }
 
     @OnOpen
     public void onOpen(Session session) {
@@ -36,10 +42,7 @@ public class ChatServer {
         }
         sessionUsernameMap.put(session, username);
         usernameSessionMap.put(username, session);
-        String message = "User '" + username + "' has joined the chat.";
-        broadcast(message);
-        System.out.println(message);
-        broadcastUserList();
+        joinChannel("general", session);
     }
 
     @OnMessage
@@ -47,7 +50,12 @@ public class ChatServer {
         String username = sessionUsernameMap.get(session);
         System.out.println("Message from " + username + ": " + message);
 
-        if (message.startsWith("/msg ")) {
+        if (message.startsWith("/join ")) {
+            String channel = message.substring(6).trim();
+            joinChannel(channel, session);
+        } else if (message.startsWith("/leave")) {
+            leaveChannel(session);
+        } else if (message.startsWith("/msg ")) {
             String[] parts = message.split(" ", 3);
             if (parts.length == 3) {
                 String destUsername = parts[1];
@@ -63,7 +71,10 @@ public class ChatServer {
                 sendMessage(session, "[System]: Invalid private message format. Use /msg <user> <message>");
             }
         } else {
-            broadcast(username + ": " + message);
+            String currentChannel = userChannelMap.get(session);
+            if (currentChannel != null) {
+                broadcast(currentChannel, username + ": " + message);
+            }
         }
     }
 
@@ -72,16 +83,36 @@ public class ChatServer {
         String username = sessionUsernameMap.remove(session);
         if (username != null) {
             usernameSessionMap.remove(username);
-            String message = "User '" + username + "' has left the chat.";
-            broadcast(message);
-            System.out.println(message);
-            broadcastUserList();
+            leaveChannel(session);
         }
     }
 
     @OnError
     public void onError(Session session, Throwable throwable) {
         System.out.println("Error for session " + session.getId() + ": " + throwable.getMessage());
+    }
+
+    private void joinChannel(String channel, Session session) {
+        leaveChannel(session); // Leave current channel before joining a new one
+
+        channelUsersMap.computeIfAbsent(channel, k -> new HashSet<>()).add(session);
+        userChannelMap.put(session, channel);
+        String username = sessionUsernameMap.get(session);
+        broadcast(channel, "[System]: User '" + username + "' has joined #" + channel);
+        broadcastUserList(channel);
+        broadcastChannelList();
+    }
+
+    private void leaveChannel(Session session) {
+        String currentChannel = userChannelMap.remove(session);
+        if (currentChannel != null) {
+            channelUsersMap.get(currentChannel).remove(session);
+            String username = sessionUsernameMap.get(session);
+            if(username != null) {
+                broadcast(currentChannel, "[System]: User '" + username + "' has left #" + currentChannel);
+                broadcastUserList(currentChannel);
+            }
+        }
     }
 
     private void sendMessage(Session session, String message) {
@@ -94,15 +125,36 @@ public class ChatServer {
         }
     }
 
-    private void broadcast(String message) {
+    private void broadcast(String channel, String message) {
+        Set<Session> users = channelUsersMap.get(channel);
+        if (users != null) {
+            for (Session session : users) {
+                sendMessage(session, message);
+            }
+        }
+    }
+
+    private void broadcastToAll(String message) {
         for (Session session : sessionUsernameMap.keySet()) {
             sendMessage(session, message);
         }
     }
 
-    private void broadcastUserList() {
-        String userListMessage = "USERLIST:" + String.join(",", usernameSessionMap.keySet());
-        broadcast(userListMessage);
+    private void broadcastUserList(String channel) {
+        Set<Session> users = channelUsersMap.get(channel);
+        if (users != null) {
+            String userListStr = users.stream()
+                                      .map(s -> sessionUsernameMap.get(s))
+                                      .filter(s -> s != null)
+                                      .reduce((s1, s2) -> s1 + "," + s2)
+                                      .orElse("");
+            broadcast(channel, "USERLIST:" + userListStr);
+        }
+    }
+
+    private void broadcastChannelList() {
+        String channelListMessage = "CHANNELLIST:" + String.join(",", channelUsersMap.keySet());
+        broadcastToAll(channelListMessage);
     }
 
     public static void main(String[] args) {

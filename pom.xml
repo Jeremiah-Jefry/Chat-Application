@@ -47,6 +47,13 @@
             <artifactId>tyrus-container-grizzly-client</artifactId>
             <version>${tyrus.version}</version>
         </dependency>
+
+        <!-- FlatLaf Look and Feel -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.6.2</version>
+        </dependency>
     </dependencies>
 
     <build>
