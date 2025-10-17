@@ -3,6 +3,7 @@ package chat;
 import com.formdev.flatlaf.FlatDarkLaf;
 import java.net.URI;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
 import javax.websocket.OnMessage;
@@ -18,7 +19,9 @@ public class ChatClient {
 
     public ChatClient(String serverUri) {
         try {
-            this.chatGUI = new ChatGUI();
+            SwingUtilities.invokeAndWait(() -> {
+                this.chatGUI = new ChatGUI();
+            });
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, new URI(serverUri));
         } catch (Exception e) {
@@ -29,21 +32,23 @@ public class ChatClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        chatGUI.appendMessage("Connected to the chat server.");
+        SwingUtilities.invokeLater(() -> chatGUI.appendMessage("Connected to the chat server."));
     }
 
     @OnMessage
     public void onMessage(String message) {
         if (message.startsWith("USERLIST:")) {
-            String[] users = message.substring(9).split(",");
-            chatGUI.updateUserList(users);
+            String userList = message.substring(9);
+            if (userList.isEmpty()) {
+                chatGUI.updateUserList(new String[0]);
+            } else {
+                String[] users = userList.split(",");
+                chatGUI.updateUserList(users);
+            }
         } else if (message.startsWith("CHANNELLIST:")) {
             String[] channels = message.substring(12).split(",");
             chatGUI.updateChannelList(channels);
-        } else if (message.startsWith("[System]: User '")) {
-            chatGUI.appendMessage(message);
-        }
-        else {
+        } else {
             chatGUI.appendMessage(message);
         }
     }
@@ -76,6 +81,7 @@ public class ChatClient {
         String serverUri = "ws://localhost:8080/websockets/chat/" + username;
 
         ChatClient client = new ChatClient(serverUri);
+        client.getChatGUI().getFrame().setVisible(true);
         client.getChatGUI().addSendButtonListener(() -> {
             String message = client.getMessageField().getText();
             if (!message.isEmpty()) {
