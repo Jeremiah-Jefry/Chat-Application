@@ -1,32 +1,26 @@
 package chat;
 
+import org.glassfish.tyrus.server.Server;
+
+import javax.websocket.*;
+import javax.websocket.server.ServerEndpoint;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.Endpoint;
-import java.util.Set;
 import java.util.HashSet;
-import org.glassfish.tyrus.server.Server;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint(value = "/chat/{username}")
 public class ChatServer {
 
+    private static Map<String, Guild> guilds = new ConcurrentHashMap<>();
     private static Map<Session, String> sessionUsernameMap = new ConcurrentHashMap<>();
     private static Map<String, Session> usernameSessionMap = new ConcurrentHashMap<>();
-    private static Map<String, Set<Session>> channelUsersMap = new ConcurrentHashMap<>();
-    private static Map<Session, String> userChannelMap = new ConcurrentHashMap<>();
+    private static Map<Session, String> userGuildMap = new ConcurrentHashMap<>();
 
     static {
-        channelUsersMap.put("general", new HashSet<>());
+        guilds.put("default", new Guild("default"));
     }
 
     @OnOpen
@@ -42,7 +36,7 @@ public class ChatServer {
         }
         sessionUsernameMap.put(session, username);
         usernameSessionMap.put(username, session);
-        joinChannel("general", session);
+        joinGuild("default", session);
     }
 
     @OnMessage
@@ -51,8 +45,13 @@ public class ChatServer {
         System.out.println("Message from " + username + ": " + message);
 
         if (message.startsWith("/join ")) {
-            String channel = message.substring(6).trim();
-            joinChannel(channel, session);
+            String[] parts = message.substring(6).split(" ");
+            if (parts.length == 2) {
+                joinChannel(parts[0], parts[1], session);
+            }
+        } else if (message.startsWith("/guild ")) {
+            String guildName = message.substring(7).trim();
+            joinGuild(guildName, session);
         } else if (message.startsWith("/leave")) {
             leaveChannel(session);
         } else if (message.startsWith("/msg ")) {
@@ -71,9 +70,13 @@ public class ChatServer {
                 sendMessage(session, "[System]: Invalid private message format. Use /msg <user> <message>");
             }
         } else {
-            String currentChannel = userChannelMap.get(session);
-            if (currentChannel != null) {
-                broadcast(currentChannel, username + ": " + message);
+            String guildName = userGuildMap.get(session);
+            Guild guild = guilds.get(guildName);
+            if (guild != null) {
+                String channelName = guild.getUserChannel(session);
+                if (channelName != null) {
+                    broadcast(guildName, channelName, username + ": " + message);
+                }
             }
         }
     }
@@ -92,25 +95,35 @@ public class ChatServer {
         System.out.println("Error for session " + session.getId() + ": " + throwable.getMessage());
     }
 
-    private void joinChannel(String channel, Session session) {
-        leaveChannel(session); // Leave current channel before joining a new one
-
-        channelUsersMap.computeIfAbsent(channel, k -> new HashSet<>()).add(session);
-        userChannelMap.put(session, channel);
+    private void joinGuild(String guildName, Session session) {
+        guilds.computeIfAbsent(guildName, Guild::new);
+        userGuildMap.put(session, guildName);
         String username = sessionUsernameMap.get(session);
-        broadcast(channel, "[System]: User '" + username + "' has joined #" + channel);
-        broadcastUserList(channel);
-        broadcastChannelList();
+        sendMessage(session, "[System]: You have joined guild '" + guildName + "'");
+        joinChannel(guildName, "general", session);
+        broadcastGuildChannelList(guildName, session);
+    }
+
+    private void joinChannel(String guildName, String channelName, Session session) {
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            guild.joinChannel(channelName, session);
+            String username = sessionUsernameMap.get(session);
+            broadcast(guildName, channelName, "[System]: User '" + username + "' has joined #" + channelName);
+            broadcastUserList(guildName, channelName);
+        }
     }
 
     private void leaveChannel(Session session) {
-        String currentChannel = userChannelMap.remove(session);
-        if (currentChannel != null) {
-            channelUsersMap.get(currentChannel).remove(session);
-            String username = sessionUsernameMap.get(session);
-            if(username != null) {
-                broadcast(currentChannel, "[System]: User '" + username + "' has left #" + currentChannel);
-                broadcastUserList(currentChannel);
+        String guildName = userGuildMap.get(session);
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            String channelName = guild.getUserChannel(session);
+            if (channelName != null) {
+                guild.leaveChannel(session);
+                String username = sessionUsernameMap.get(session);
+                broadcast(guildName, channelName, "[System]: User '" + username + "' has left #" + channelName);
+                broadcastUserList(guildName, channelName);
             }
         }
     }
@@ -125,36 +138,51 @@ public class ChatServer {
         }
     }
 
-    private void broadcast(String channel, String message) {
-        Set<Session> users = channelUsersMap.get(channel);
-        if (users != null) {
-            for (Session session : users) {
-                sendMessage(session, message);
+    private void broadcast(String guildName, String channelName, String message) {
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            Set<Session> users = guild.getChannelUsers(channelName);
+            if (users != null) {
+                String timestamp = new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date());
+                for (Session s : users) {
+                    sendMessage(s, timestamp + " " + message);
+                }
             }
         }
     }
 
-    private void broadcastToAll(String message) {
-        for (Session session : sessionUsernameMap.keySet()) {
-            sendMessage(session, message);
+    private void broadcastToGuild(String guildName, String message) {
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            guild.getChannels().forEach(channelName -> {
+                guild.getChannelUsers(channelName).forEach(session -> sendMessage(session, message));
+            });
         }
     }
 
-    private void broadcastUserList(String channel) {
-        Set<Session> users = channelUsersMap.get(channel);
-        if (users != null) {
-            String userListStr = users.stream()
-                                      .map(s -> sessionUsernameMap.get(s))
-                                      .filter(s -> s != null)
-                                      .reduce((s1, s2) -> s1 + "," + s2)
-                                      .orElse("");
-            broadcast(channel, "USERLIST:" + userListStr);
+    private void broadcastUserList(String guildName, String channelName) {
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            Set<Session> users = guild.getChannelUsers(channelName);
+            if (users != null) {
+                String userListStr = users.stream()
+                        .map(s -> sessionUsernameMap.get(s))
+                        .filter(s -> s != null)
+                        .reduce((s1, s2) -> s1 + "," + s2)
+                        .orElse("");
+                for (Session s : users) {
+                    sendMessage(s, "USERLIST:" + userListStr);
+                }
+            }
         }
     }
 
-    private void broadcastChannelList() {
-        String channelListMessage = "CHANNELLIST:" + String.join(",", channelUsersMap.keySet());
-        broadcastToAll(channelListMessage);
+    private void broadcastGuildChannelList(String guildName, Session session) {
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            String channelListMessage = "CHANNELLIST:" + String.join(",", guild.getChannels());
+            sendMessage(session, channelListMessage);
+        }
     }
 
     public static void main(String[] args) {
@@ -164,8 +192,8 @@ public class ChatServer {
 
         try {
             server.start();
-            System.out.println("Press any key to stop the server...");
-            new BufferedReader(new InputStreamReader(System.in)).readLine();
+            System.out.println("Server started.");
+            Thread.currentThread().join();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
