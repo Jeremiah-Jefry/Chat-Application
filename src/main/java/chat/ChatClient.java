@@ -38,19 +38,16 @@ public class ChatClient {
     @OnMessage
     public void onMessage(String message) {
         if (message.startsWith("USERLIST:")) {
-            String userList = message.substring(9);
-            if (userList.isEmpty()) {
-                chatGUI.updateUserList(new String[0]);
-            } else {
-                String[] users = userList.split(",");
-                chatGUI.updateUserList(users);
-            }
+            updateUsers(message.substring(9));
         } else if (message.startsWith("CHANNELLIST:")) {
-            String[] channels = message.substring(12).split(",");
-            chatGUI.updateChannelList(channels);
+            chatGUI.updateChannelList(message.substring(12).split(","));
         } else {
             chatGUI.appendMessage(message);
         }
+    }
+
+    private void updateUsers(String userList) {
+        chatGUI.updateUserList(userList.isEmpty() ? new String[0] : userList.split(","));
     }
 
     public void sendMessage(String message) {
@@ -85,11 +82,7 @@ public class ChatClient {
         client.getChatGUI().addSendButtonListener(() -> {
             String message = client.getMessageField().getText();
             if (!message.isEmpty()) {
-                if (message.startsWith("/msg")) {
-                    client.sendMessage(message);
-                } else {
-                    client.sendMessage(message);
-                }
+                client.sendMessage(message);
                 client.getMessageField().setText("");
             }
         });

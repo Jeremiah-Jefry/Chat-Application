@@ -44,39 +44,58 @@ public class ChatServer {
         String username = sessionUsernameMap.get(session);
         System.out.println("Message from " + username + ": " + message);
 
+        if (message.startsWith("/")) {
+            handleCommand(session, username, message);
+        } else {
+            broadcastUserMessage(session, username, message);
+        }
+    }
+
+    private void handleCommand(Session session, String username, String message) {
         if (message.startsWith("/join ")) {
-            String[] parts = message.substring(6).split(" ");
-            if (parts.length == 2) {
-                joinChannel(parts[0], parts[1], session);
-            }
+            handleJoinCommand(session, message.substring(6));
         } else if (message.startsWith("/guild ")) {
-            String guildName = message.substring(7).trim();
-            joinGuild(guildName, session);
+            joinGuild(message.substring(7).trim(), session);
         } else if (message.startsWith("/leave")) {
             leaveChannel(session);
         } else if (message.startsWith("/msg ")) {
-            String[] parts = message.split(" ", 3);
-            if (parts.length == 3) {
-                String destUsername = parts[1];
-                String privateMessage = parts[2];
-                Session destSession = usernameSessionMap.get(destUsername);
-                if (destSession != null) {
-                    sendMessage(destSession, "[PM from " + username + "]: " + privateMessage);
-                    sendMessage(session, "[PM to " + destUsername + "]: " + privateMessage);
-                } else {
-                    sendMessage(session, "[System]: User '" + destUsername + "' not found.");
-                }
-            } else {
-                sendMessage(session, "[System]: Invalid private message format. Use /msg <user> <message>");
-            }
+            handlePrivateMessage(session, username, message);
+        }
+    }
+
+    private void handleJoinCommand(Session session, String joinMessage) {
+        String[] parts = joinMessage.split(" ");
+        if (parts.length == 2) {
+            joinChannel(parts[0], parts[1], session);
+        }
+    }
+
+    private void handlePrivateMessage(Session session, String username, String message) {
+        String[] parts = message.split(" ", 3);
+        if (parts.length == 3) {
+            sendPrivateMessage(session, username, parts[1], parts[2]);
         } else {
-            String guildName = userGuildMap.get(session);
-            Guild guild = guilds.get(guildName);
-            if (guild != null) {
-                String channelName = guild.getUserChannel(session);
-                if (channelName != null) {
-                    broadcast(guildName, channelName, username + ": " + message);
-                }
+            sendMessage(session, "[System]: Invalid private message format. Use /msg <user> <message>");
+        }
+    }
+
+    private void sendPrivateMessage(Session session, String username, String destUsername, String message) {
+        Session destSession = usernameSessionMap.get(destUsername);
+        if (destSession != null) {
+            sendMessage(destSession, "[PM from " + username + "]: " + message);
+            sendMessage(session, "[PM to " + destUsername + "]: " + message);
+        } else {
+            sendMessage(session, "[System]: User '" + destUsername + "' not found.");
+        }
+    }
+
+    private void broadcastUserMessage(Session session, String username, String message) {
+        String guildName = userGuildMap.get(session);
+        Guild guild = guilds.get(guildName);
+        if (guild != null) {
+            String channelName = guild.getUserChannel(session);
+            if (channelName != null) {
+                broadcast(guildName, channelName, username + ": " + message);
             }
         }
     }
@@ -140,40 +159,33 @@ public class ChatServer {
 
     private void broadcast(String guildName, String channelName, String message) {
         Guild guild = guilds.get(guildName);
-        if (guild != null) {
-            Set<Session> users = guild.getChannelUsers(channelName);
-            if (users != null) {
-                String timestamp = new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date());
-                for (Session s : users) {
-                    sendMessage(s, timestamp + " " + message);
-                }
-            }
+        if (guild != null && guild.getChannelUsers(channelName) != null) {
+            String timestamp = new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date());
+            String finalMessage = timestamp + " " + message;
+            guild.getChannelUsers(channelName).forEach(session -> sendMessage(session, finalMessage));
         }
     }
 
     private void broadcastToGuild(String guildName, String message) {
         Guild guild = guilds.get(guildName);
         if (guild != null) {
-            guild.getChannels().forEach(channelName -> {
-                guild.getChannelUsers(channelName).forEach(session -> sendMessage(session, message));
-            });
+            guild.getChannels().stream()
+                .flatMap(channel -> guild.getChannelUsers(channel).stream())
+                .forEach(session -> sendMessage(session, message));
         }
     }
 
     private void broadcastUserList(String guildName, String channelName) {
         Guild guild = guilds.get(guildName);
-        if (guild != null) {
-            Set<Session> users = guild.getChannelUsers(channelName);
-            if (users != null) {
-                String userListStr = users.stream()
-                        .map(s -> sessionUsernameMap.get(s))
-                        .filter(s -> s != null)
-                        .reduce((s1, s2) -> s1 + "," + s2)
-                        .orElse("");
-                for (Session s : users) {
-                    sendMessage(s, "USERLIST:" + userListStr);
-                }
-            }
+        if (guild != null && guild.getChannelUsers(channelName) != null) {
+            String userList = guild.getChannelUsers(channelName).stream()
+                .map(sessionUsernameMap::get)
+                .filter(username -> username != null)
+                .reduce((u1, u2) -> u1 + "," + u2)
+                .orElse("");
+            
+            guild.getChannelUsers(channelName)
+                .forEach(session -> sendMessage(session, "USERLIST:" + userList));
         }
     }
 
