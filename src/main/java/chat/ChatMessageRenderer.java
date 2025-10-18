@@ -12,20 +12,23 @@ public class ChatMessageRenderer extends JPanel implements ListCellRenderer<Stri
 
     public ChatMessageRenderer() {
         setLayout(new BorderLayout());
-        setBackground(new Color(152, 251, 152)); // Mint Green
-        setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        setBackground(new Color(40, 44, 52)); // Dark Slate
+        setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(67, 58, 85, 50)), // Subtle Purple separator
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
 
         usernameLabel = new JLabel();
-        usernameLabel.setForeground(new Color(75, 0, 130)); // Indigo
-        usernameLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        usernameLabel.setForeground(new Color(187, 128, 255)); // Bright Purple
+        usernameLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
         messageLabel = new JLabel();
-        messageLabel.setForeground(Color.BLACK);
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        messageLabel.setForeground(new Color(220, 220, 255)); // Soft White
+        messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         timestampLabel = new JLabel();
-        timestampLabel.setForeground(Color.DARK_GRAY);
-        timestampLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+        timestampLabel.setForeground(new Color(145, 145, 175)); // Muted Gray
+        timestampLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);

@@ -9,13 +9,14 @@ public class ServerListPanel extends JPanel {
 
     public ServerListPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(230, 230, 250)); // Lavender
+        setBackground(new Color(45, 52, 71)); // Deep Indigo
 
         serverListModel = new DefaultListModel<>();
         serverList = new JList<>(serverListModel);
-        serverList.setBackground(new Color(230, 230, 250)); // Lavender
-        serverList.setForeground(Color.BLACK);
+        serverList.setBackground(new Color(45, 52, 71)); // Deep Indigo
+        serverList.setForeground(new Color(220, 220, 255)); // Soft White
         serverList.setCellRenderer(new ServerListRenderer());
+        serverList.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
         // Add some dummy servers for now
         serverListModel.addElement("Server 1");

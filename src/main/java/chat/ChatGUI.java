@@ -25,15 +25,25 @@ public class ChatGUI {
         chatListModel = new DefaultListModel<>();
         chatPane = new JList<>(chatListModel);
         chatPane.setCellRenderer(new ChatMessageRenderer());
-        chatPane.setBackground(new Color(152, 251, 152)); // Mint Green
+        chatPane.setBackground(new Color(40, 44, 52)); // Dark Slate
         JScrollPane chatScrollPane = new JScrollPane(chatPane);
         chatScrollPane.setBorder(null);
+        chatScrollPane.getViewport().setBackground(new Color(40, 44, 52)); // Dark Slate
 
         // Message Field and Send Button
         messageField = new JTextField();
-        messageField.setBackground(new Color(240, 248, 255)); // Alice Blue
-        messageField.setForeground(Color.BLACK);
+        messageField.setBackground(new Color(52, 56, 64)); // Lighter Slate
+        messageField.setForeground(new Color(220, 220, 255)); // Soft White
+        messageField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(67, 58, 85), 1), // Purple border
+            BorderFactory.createEmptyBorder(5, 10, 5, 10) // Padding
+        ));
+        
         sendButton = new JButton("Send");
+        sendButton.setBackground(new Color(103, 88, 148)); // Bright Purple
+        sendButton.setForeground(Color.WHITE);
+        sendButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+        sendButton.setFocusPainted(false);
 
         JPanel messagePanel = new JPanel(new BorderLayout());
         messagePanel.add(messageField, BorderLayout.CENTER);
@@ -47,10 +57,13 @@ public class ChatGUI {
         // User List
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
-        userList.setBackground(new Color(173, 216, 230)); // Baby Blue
-        userList.setForeground(Color.BLACK);
+        userList.setBackground(new Color(58, 52, 73)); // Soft Purple
+        userList.setForeground(new Color(220, 220, 255)); // Soft White
         JScrollPane userScrollPane = new JScrollPane(userList);
-        userScrollPane.setBorder(BorderFactory.createTitledBorder("Users"));
+        userScrollPane.setBorder(BorderFactory.createTitledBorder(null, "Users", 
+            javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, 
+            javax.swing.border.TitledBorder.DEFAULT_POSITION, 
+            null, new Color(220, 220, 255))); // Soft White title
         discordLayout.getUserListPanel().setLayout(new BorderLayout());
         discordLayout.getUserListPanel().add(userScrollPane, BorderLayout.CENTER);
     }
