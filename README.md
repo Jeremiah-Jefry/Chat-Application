@@ -1,78 +1,84 @@
 # Chat Application
 
-This is a real-time chat application that demonstrates the use of the Java WebSocket API (`javax.websocket`) for real-time communication between a server and multiple clients. This project uses Apache Maven to manage dependencies and build the application.
+A Java-based real-time chat application with a Discord-inspired user interface. This project demonstrates the use of WebSocket technology for real-time communication between a server and multiple clients, along with a modern graphical user interface built using Java Swing.
 
 ## Features
 
--   **Client Registration:** Each client registers with a unique username.
--   **Broadcast Messaging:** Send messages to all connected clients using the `ALL:` prefix.
--   **Private Messaging:** Send private messages to a specific client using the `<username>:` prefix.
--   **Multithreaded Server:** The server handles each client connection in a separate thread for concurrent communication.
--   **Graceful Disconnection:** The server handles client disconnections and notifies other clients.
--   **Console-based UI:** Both the server and client run in the terminal.
+- **Discord-like Interface:** Modern, dark-themed UI inspired by Discord
+- **Server List Panel:** View and manage different servers
+- **Channel List Panel:** Navigate through different channels within a server
+- **Real-time Messaging:** Instant message delivery using WebSocket technology
+- **Multithreaded Server:** Handles multiple client connections concurrently
+- **Dark Theme:** Eye-friendly dark color scheme throughout the application
 
 ## Prerequisites
 
--   Java Development Kit (JDK) 8 or higher.
--   Apache Maven.
+- Java Development Kit (JDK) 8 or higher
+- Apache Maven
 
-## Compilation
+## Building the Application
 
-To compile the source code and download the dependencies, run the following command from the project's root directory:
+To compile the source code and create an executable JAR with dependencies, run:
 
 ```bash
 mvn clean install
 ```
 
-This command will compile the source code and create a JAR file in the `target` directory.
+This will create two JAR files in the `target` directory:
+- `chat-application-1.0-SNAPSHOT.jar`: The basic JAR file
+- `chat-application-1.0-SNAPSHOT-jar-with-dependencies.jar`: The JAR file with all dependencies included
 
 ## Running the Application
 
 ### 1. Start the Server
 
-Open a terminal and run the following command:
+Open a terminal and run:
 
 ```bash
-mvn exec:java -Dexec.mainClass="chat.ChatServer"
+java -cp target/chat-application-1.0-SNAPSHOT-jar-with-dependencies.jar chat.ChatServer
 ```
 
-The server will start and print a message to the console, indicating that it is ready to accept connections.
+The server will start and listen for incoming client connections.
 
-### 2. Start a Client
+### 2. Start the Client
 
-Open a new terminal for each client you want to connect. Run the following command, replacing `<username>` with a unique username for the client:
+Open a new terminal for each client instance:
 
 ```bash
-mvn exec:java -Dexec.mainClass="chat.ChatClient" -Dexec.args="<username>"
+java -cp target/chat-application-1.0-SNAPSHOT-jar-with-dependencies.jar chat.ChatGUI
 ```
 
-For example:
+You can start multiple client instances to simulate different users.
 
+## Project Structure
+
+- `src/main/java/chat/`
+  - `ChatServer.java`: The WebSocket server implementation
+  - `ChatGUI.java`: Main client GUI application
+  - `ChatClient.java`: WebSocket client implementation
+  - `ChannelListPanel.java`: UI component for displaying channels
+  - `ServerListPanel.java`: UI component for displaying servers
+  - `ChatMessageRenderer.java`: Custom renderer for chat messages
+  - `DiscordLayout.java`: Layout manager for Discord-like interface
+  - `Guild.java`: Server/Guild data model
+
+## Building from Source
+
+1. Clone the repository:
 ```bash
-mvn exec:java -Dexec.mainClass="chat.ChatClient" -Dexec.args="alice"
+git clone https://github.com/Jeremiah-Jefry/Chat-Application.git
 ```
 
-### 3. Using the Chat
+2. Navigate to the project directory:
+```bash
+cd Chat-Application
+```
 
-Once connected, you can start sending messages.
+3. Build with Maven:
+```bash
+mvn clean install
+```
 
--   **Broadcast Message:** To send a message to all users, type `ALL:<your_message>` and press Enter.
+## License
 
-    ```
-    ALL:Hello everyone!
-    ```
-
--   **Private Message:** To send a private message to a specific user, type `<username>:<your_message>` and press Enter. For example, to send a message to a user named `bob`:
-
-    ```
-    bob:Hi Bob, how are you?
-    ```
-
--   **Quit:** To disconnect from the chat, type `quit` and press Enter.
-
-## Code Structure
-
--   `src/chat/ChatServer.java`: The main server class that handles WebSocket connections, user sessions, and message broadcasting.
--   `src/chat/ChatClient.java`: The client class that connects to the server, sends messages, and receives messages.
--   `pom.xml`: The Maven project configuration file, which defines the project's dependencies and build settings.
--   `README.md`: This file.
+This project is open-source and available under the MIT License.
