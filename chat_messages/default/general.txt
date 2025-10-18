@@ -1,0 +1,5 @@
+08:30 [System]: User 'Jeff' has joined #general
+08:30 Jeff: heyy hello
+08:30 [System]: User 'null' has left #general
+08:30 [System]: User 'Jeff' has joined #general
+08:30 [System]: User 'null' has left #general
