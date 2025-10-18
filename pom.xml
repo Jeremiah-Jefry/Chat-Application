@@ -10,18 +10,19 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <tyrus.version>1.15</tyrus.version>
-        <websocket.api.version>1.1</websocket.api.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <tyrus.version>2.1.5</tyrus.version>
+        <websocket.api.version>2.1.1</websocket.api.version>
+        <jakarta.websocket.api.version>2.1.1</jakarta.websocket.api.version>
     </properties>
 
     <dependencies>
-        <!-- WebSocket API -->
+        <!-- Jakarta WebSocket API -->
         <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
+            <groupId>jakarta.websocket</groupId>
+            <artifactId>jakarta.websocket-api</artifactId>
+            <version>${jakarta.websocket.api.version}</version>
         </dependency>
 
         <!-- Tyrus Server -->
