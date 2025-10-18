@@ -25,25 +25,26 @@ public class ChatGUI {
         chatListModel = new DefaultListModel<>();
         chatPane = new JList<>(chatListModel);
         chatPane.setCellRenderer(new ChatMessageRenderer());
-        chatPane.setBackground(new Color(40, 44, 52)); // Dark Slate
+        chatPane.setBackground(Color.BLACK);
         JScrollPane chatScrollPane = new JScrollPane(chatPane);
-        chatScrollPane.setBorder(null);
-        chatScrollPane.getViewport().setBackground(new Color(40, 44, 52)); // Dark Slate
+        chatScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        chatScrollPane.getViewport().setBackground(Color.BLACK);
 
         // Message Field and Send Button
         messageField = new JTextField();
-        messageField.setBackground(new Color(52, 56, 64)); // Lighter Slate
-        messageField.setForeground(new Color(220, 220, 255)); // Soft White
+        messageField.setBackground(new Color(30, 30, 30));
+        messageField.setForeground(Color.WHITE);
         messageField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(67, 58, 85), 1), // Purple border
             BorderFactory.createEmptyBorder(5, 10, 5, 10) // Padding
         ));
         
         sendButton = new JButton("Send");
-        sendButton.setBackground(new Color(103, 88, 148)); // Bright Purple
+        sendButton.setBackground(new Color(50, 50, 50));
         sendButton.setForeground(Color.WHITE);
         sendButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         sendButton.setFocusPainted(false);
+        sendButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
         JPanel messagePanel = new JPanel(new BorderLayout());
         messagePanel.add(messageField, BorderLayout.CENTER);
@@ -57,13 +58,14 @@ public class ChatGUI {
         // User List
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
-        userList.setBackground(new Color(58, 52, 73)); // Soft Purple
-        userList.setForeground(new Color(220, 220, 255)); // Soft White
+        userList.setBackground(Color.BLACK);
+        userList.setForeground(Color.WHITE);
         JScrollPane userScrollPane = new JScrollPane(userList);
         userScrollPane.setBorder(BorderFactory.createTitledBorder(null, "Users", 
             javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, 
             javax.swing.border.TitledBorder.DEFAULT_POSITION, 
-            null, new Color(220, 220, 255))); // Soft White title
+            new Font("Segoe UI", Font.BOLD, 12),
+            Color.WHITE));
         discordLayout.getUserListPanel().setLayout(new BorderLayout());
         discordLayout.getUserListPanel().add(userScrollPane, BorderLayout.CENTER);
     }

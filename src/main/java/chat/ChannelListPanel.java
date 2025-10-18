@@ -9,17 +9,17 @@ public class ChannelListPanel extends JPanel {
 
     public ChannelListPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(67, 58, 85)); // Rich Purple
+        setBackground(Color.BLACK);
         setBorder(BorderFactory.createTitledBorder(null, "Channels",
             javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION,
             javax.swing.border.TitledBorder.DEFAULT_POSITION,
             new Font("Segoe UI", Font.BOLD, 12),
-            new Color(220, 220, 255))); // Soft White
+            Color.WHITE));
 
         channelListModel = new DefaultListModel<>();
         channelList = new JList<>(channelListModel);
-        channelList.setBackground(new Color(67, 58, 85)); // Rich Purple
-        channelList.setForeground(new Color(220, 220, 255)); // Soft White
+        channelList.setBackground(Color.BLACK);
+        channelList.setForeground(Color.WHITE);
         channelList.setCellRenderer(new ChannelListRenderer());
 
         add(new JScrollPane(channelList), BorderLayout.CENTER);
