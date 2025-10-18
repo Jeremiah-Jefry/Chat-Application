@@ -1,6 +1,6 @@
-# Java WebSocket Chat Application
+# Chat Application
 
-This is a simple console-based chat application that demonstrates the use of the Java WebSocket API (`javax.websocket`) for real-time communication between a server and multiple clients. This project uses Apache Maven to manage dependencies and build the application.
+This is a real-time chat application that demonstrates the use of the Java WebSocket API (`javax.websocket`) for real-time communication between a server and multiple clients. This project uses Apache Maven to manage dependencies and build the application.
 
 ## Features
 

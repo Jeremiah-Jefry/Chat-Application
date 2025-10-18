@@ -11,7 +11,7 @@ public class DiscordLayout {
     private JPanel userListPanel;
 
     public DiscordLayout() {
-        frame = new JFrame("Discord-like Chat");
+        frame = new JFrame("Chat Application");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 700);
         frame.setLayout(new BorderLayout());
